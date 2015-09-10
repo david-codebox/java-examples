@@ -1,0 +1,6 @@
+<?import javafx.scene.*?>
+<?import com.hp.sandbox.javafx.customcomponents.CustomControl?>
+<?import javafx.scene.layout.HBox?>
+<HBox>
+    <CustomControl text="Hello World!"/>
+</HBox>
