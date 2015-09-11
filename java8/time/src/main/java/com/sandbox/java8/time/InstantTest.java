@@ -1,4 +1,4 @@
-package com.sandbox.core.java8;
+package com.sandbox.java8.time;
 
 import java.time.Instant;
 
