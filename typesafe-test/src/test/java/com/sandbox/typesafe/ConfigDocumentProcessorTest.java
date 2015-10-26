@@ -88,7 +88,7 @@ public class ConfigDocumentProcessorTest{
         ConfigValue value = configList.get(0);
         System.out.println(value.render(renderOptions));
 
-        Config manual1 = ConfigFactory.parseString(TypeSafeConfigUtils.asString(value));
+        Config manual1 = ConfigFactory.parseString(TypeSafeConfigUtils.render(value));
         logger.debug("ConfigDocumentProcessorTest.testIterateConfigList: Config created from Config Value." );
         TypeSafeConfigUtils.print(manual1);
     }

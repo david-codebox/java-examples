@@ -149,8 +149,8 @@ public class TypeSafeConfigUtils {
         checkNotNull(list);
         checkArgument(!Strings.isNullOrEmpty(listPath));
         List<ConfigObject> updatedList = list.stream().map(Config::root).collect(Collectors.toList());
-//        return data.withValue(listPath, ConfigValueFactory.fromIterable(updatedList));
-        return withValue(data, listPath, ConfigValueFactory.fromIterable(updatedList));
+        return data.withValue(listPath, ConfigValueFactory.fromIterable(updatedList));
+//        return withValue(data, listPath, ConfigValueFactory.fromIterable(updatedList));
     }
 
     /**
@@ -202,20 +202,23 @@ public class TypeSafeConfigUtils {
         return ConfigDocumentFactory.parseString(config.root().render(renderOptions));
     }
 
-    public static String asString(Config config) {
-        return asString(config.root());
+    public static String render(Config config) {
+        return render(config.root());
+    }
+    public static String render(Config config, boolean asJson) {
+        return render(config.root(),asJson);
     }
 
-    public static String asString(ConfigValue value) {
+    public static String render(ConfigValue value) {
         return value.render(renderOptions);
     }
 
-    public static String asString(ConfigDocument value) {
-        return value.render();
+    public static String render(ConfigValue value, boolean asJson) {
+        return value.render(renderOptions.setJson(asJson));
     }
 
     public static ConfigValue withValue(ConfigValue config, String path, ConfigValue value) {
-        ConfigDocument document = ConfigDocumentFactory.parseString(asString(config));
+        ConfigDocument document = ConfigDocumentFactory.parseString(render(config));
         Config updated= ConfigFactory.parseString(document.withValue(path, value).render());
         return updated.root();
     }
@@ -223,7 +226,7 @@ public class TypeSafeConfigUtils {
         if (value.valueType().equals(ConfigValueType.LIST)) {
             return config.withValue(path, value);
         }
-        ConfigDocument document = ConfigDocumentFactory.parseString(asString(config));
-        return ConfigFactory.parseString(document.withValueText(path, asString(value)).render());
+        ConfigDocument document = ConfigDocumentFactory.parseString(render(config));
+        return ConfigFactory.parseString(document.withValueText(path, render(value)).render());
     }
 }

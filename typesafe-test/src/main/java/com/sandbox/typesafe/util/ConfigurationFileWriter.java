@@ -3,9 +3,7 @@ package com.sandbox.typesafe.util;
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigRenderOptions;
-import com.typesafe.config.ConfigValue;
 import com.typesafe.config.parser.ConfigDocument;
-import com.typesafe.config.parser.ConfigDocumentFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,9 +15,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * Created with IntelliJ IDEA.
@@ -51,21 +47,6 @@ public class ConfigurationFileWriter {
         this.renderOptions = renderOptions;
     }
 
-    @Deprecated
-    public void write(File file, Config config) throws IOException {
-        Objects.requireNonNull(file);
-        if (file.isDirectory()) {
-            logger.error("ConfigurationFileWriter.write: File is a directory: {}", file);
-            return;
-        }
-        //update the render options per file extension
-        String fileName=file.getName();
-//        Files.write(file.toPath(), write(config, fileName.matches("(?i).+\\.json$")).getBytes());
-        PrintWriter writer = new PrintWriter(file, "utf-8");
-        writer.print(write(config, fileName.matches("(?i).+\\.json$")));
-        writer.close();
-    }
-
     public void update(URL url, Config config) throws IOException, URISyntaxException {
         update(Paths.get(url.toURI()), config, true);
     }
@@ -77,11 +58,8 @@ public class ConfigurationFileWriter {
     public void update(Path path, Config config, boolean includeNewEntries) throws IOException {
         Preconditions.checkNotNull(config);
         Preconditions.checkArgument(!config.isEmpty());
-        if (Files.notExists(path)) {
-            logger.debug("ConfigurationFileWriter.update: Path does not exist. Writing config to: [{}]", path);
-            write(path.toFile(), config);
-            return;
-        }
+        logger.debug("ConfigurationFileWriter.update: Writing config to: [{}]", path);
+
 /*
 
         Config configFromFile = TypeSafeConfigUtils.parse(path);
@@ -93,9 +71,9 @@ public class ConfigurationFileWriter {
             document = document.withValue(entry.getKey(), entry.getValue());
         }
 */
-        ConfigDocument document = TypeSafeConfigUtils.toConfigDocument(config);
-//        String content = TypeSafeConfigUtils.asString(config);
-        String content = document.render();
+        String fileName=path.getFileName().toString();
+        String content = TypeSafeConfigUtils.render(config,fileName.matches("(?i).+\\.json$"));
+//        String content = document.render();
 //        logger.debug("ConfigurationFileWriter.update: [{}]", content );
         Files.write(path, content.getBytes());
     }
@@ -107,4 +85,20 @@ public class ConfigurationFileWriter {
         }
         return config.root().render(options);
     }
+
+    @Deprecated
+    public void write(File file, Config config) throws IOException {
+        Objects.requireNonNull(file);
+        if (file.isDirectory()) {
+            logger.error("ConfigurationFileWriter.write: File is a directory: {}", file);
+            return;
+        }
+        //update the render options per file extension
+        String fileName=file.getName();
+//        Files.write(file.toPath(), write(config, fileName.matches("(?i).+\\.json$")).getBytes());
+        PrintWriter writer = new PrintWriter(file, "utf-8");
+        writer.print(TypeSafeConfigUtils.render(config, fileName.matches("(?i).+\\.json$")));
+        writer.close();
+    }
+
 }

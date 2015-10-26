@@ -48,12 +48,10 @@ public class ConfigDocumentProcessor {
     public void updateListItem(Config item, int index) throws IOException, URISyntaxException {
         List<Config> entries=findEntries();
         entries.set(index, item);
-        System.out.println(">>>>>>>>>>>>>>>> Config document before update <<<<<<<<<<<<<<");
-        TypeSafeConfigUtils.print(doc);
         doc = TypeSafeConfigUtils.updateConfigList(doc, entries, CONFIG_KEY_WORKFLOW_LIST);
         System.out.println(">>>>>>>>>>>>>>>> Config document after update <<<<<<<<<<<<<<");
         TypeSafeConfigUtils.print(doc);
-//        writer.update(configFileURL, doc);
+        writer.update(configFileURL, doc);
     }
 
     public void removeEntry() {
