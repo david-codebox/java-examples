@@ -38,7 +38,7 @@ public class TypeSafeConfigUtils {
             .setJson(false)
             .setOriginComments(false);
 
-    public static Config parse(Path file) {
+    public static Config parse(Path file, boolean withOverrides) {
         Preconditions.checkNotNull(file);
         if (Files.notExists(file)) {
             String msg = String.format("File does not exist: [%s]", file);
@@ -55,10 +55,17 @@ public class TypeSafeConfigUtils {
             LOGGER.error("ConfigurationFileParser.parse: File not found: {}", file);
             return null;
         }
-        return ConfigFactory.defaultOverrides()
-                .withFallback(ConfigFactory.parseFileAnySyntax(file.toFile(), parseOptions))
-                .resolve(ConfigResolveOptions.defaults());
+        Config config = ConfigFactory.parseFileAnySyntax(file.toFile(), parseOptions);
+        if (withOverrides) {
+            config = ConfigFactory.defaultOverrides().withFallback(config);
+        }
+        return config.resolve(ConfigResolveOptions.defaults());
     }
+
+    public static Config parse(Path file) {
+        return parse(file, true);
+    }
+
     /**
      *
      * @param file
