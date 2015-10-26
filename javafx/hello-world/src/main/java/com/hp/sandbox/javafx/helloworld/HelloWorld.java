@@ -1,6 +1,7 @@
 package com.hp.sandbox.javafx.helloworld;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
@@ -10,6 +11,10 @@ import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Random;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 /**
  * Created with IntelliJ IDEA.
  * User: Jian-Min Gao
@@ -18,6 +23,7 @@ import org.slf4j.LoggerFactory;
  */
 public class HelloWorld extends Application {
     private static final Logger logger = LoggerFactory.getLogger(HelloWorld.class);
+    private ExecutorService executor= Executors.newCachedThreadPool();
     public static void main(String[] args) {
         launch(args);
     }
@@ -83,12 +89,37 @@ public class HelloWorld extends Application {
 
         Button button = new Button();
         button.setText("Say 'hello world");
-        button.setOnAction(event -> System.out.println("Hello world"));
+//        button.setOnAction(event -> System.out.println("Hello world"));
+        button.setOnAction(this::sayHi);
 
         StackPane root = new StackPane();
         root.getChildren().add(button);
 
         primaryStage.setScene(new Scene(root, 300, 250));
         primaryStage.show();
+    }
+
+
+    private void sayHi(ActionEvent event) {
+        Random random = new Random();
+        for (int i = 0; i < 5; i++) {
+            logger.debug("HelloWorld.sayHi: Adding thread #[{}]", i+1);
+            executor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    String name = Thread.currentThread().getName();
+                    logger.debug("HelloWorld.run: [{}] - running", name);
+                    try {
+                        int sleep = 500 * random.nextInt(10);
+                        logger.debug("HelloWorld.run: [{}] - sleep time: {}", name,sleep);
+                        Thread.sleep(sleep);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    logger.debug("HelloWorld.run: [{}] - done", name);
+                }
+            });
+
+        }
     }
 }
