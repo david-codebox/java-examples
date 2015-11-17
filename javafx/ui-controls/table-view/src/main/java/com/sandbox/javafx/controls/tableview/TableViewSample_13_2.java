@@ -19,7 +19,7 @@ import javafx.stage.Stage;
  * Time: 13:39 <br>
  * </div>
  */
-public class TableViewSample_2 extends Application {
+public class TableViewSample_13_2 extends Application {
 
     private final TableView table = new TableView();
     public static void main(String[] args) {

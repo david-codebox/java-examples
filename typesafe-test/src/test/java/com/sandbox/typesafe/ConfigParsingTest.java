@@ -50,7 +50,11 @@ public class ConfigParsingTest {
             logger.debug("ConfigParsingTest.testGetConfigObjectList: value type: [{}]",configObject.valueType() );
 
 //            configObject.values().forEach( item -> logger.debug("ConfigParsingTest.testGetConfigObjectList: [{}]", item.render() ));
-            configObject.entrySet().forEach( entry -> logger.debug("ConfigParsingTest.testGetConfigObjectList: [{}]=[{}]", entry.getKey(), entry.getValue().render() ));
+//            configObject.entrySet().forEach( entry -> logger.debug("ConfigParsingTest.testGetConfigObjectList: [{}]=[{}]", entry.getKey(), entry.getValue().render() ));
+            configObject.entrySet().forEach(entry -> {
+                logger.debug("ConfigParsingTest.testGetConfigObjectList: value class: [{}]", entry.getValue().unwrapped().getClass().getName());
+                logger.debug("ConfigParsingTest.testGetConfigObjectList: [{}]=[{}]", entry.getKey(), entry.getValue());
+            });
             System.out.println("===========================================");
         }
     }
