@@ -6,12 +6,12 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.ChoiceBoxTableCell;
 import javafx.scene.control.cell.MapValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
@@ -21,6 +21,7 @@ import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.SQLOutput;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -71,18 +72,20 @@ public class SpinnerMapTableView extends Application {
         secondDataColumn.setCellFactory(param -> new IntegerSpinnerTableCell<>());
 
 
-        tableView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener() {
-            @Override
-            public void changed(ObservableValue observable, Object oldValue, Object newValue) {
-                logger.debug("SpinnerMapTableView.changed: new Value: [{}]", newValue);
-            }
-        });
-
         final VBox vbox = new VBox();
 
         vbox.setSpacing(5);
         vbox.setPadding(new Insets(10, 0, 0, 10));
-        vbox.getChildren().addAll(label, tableView);
+        Button button = new Button("save");
+        button.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                tableView.getItems().forEach(System.out::println);
+            }
+        });
+        ButtonBar buttonBar = new ButtonBar();
+        buttonBar.getButtons().add(button);
+        vbox.getChildren().addAll(label, tableView,buttonBar);
 
         ((Group) scene.getRoot()).getChildren().addAll(vbox);
 

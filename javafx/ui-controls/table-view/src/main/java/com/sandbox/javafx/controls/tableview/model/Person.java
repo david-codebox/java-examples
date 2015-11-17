@@ -1,4 +1,4 @@
-package com.sandbox.javafx.controls.tableview.beanproperty.domain;
+package com.sandbox.javafx.controls.tableview.model;
 
 import javafx.beans.property.SimpleStringProperty;
 

@@ -1,4 +1,4 @@
-package com.sandbox.javafx.controls.tableview.map;
+package com.sandbox.javafx.controls.tableview;
 
 import javafx.application.Application;
 import javafx.collections.FXCollections;
@@ -29,7 +29,7 @@ import java.util.Map;
  * Time: 10:22 <br>
  * </div>
  */
-public class MapTableView extends Application {
+public class TableViewSample_13_12 extends Application {
     public static final String Column1MapKey = "A";
     public static final String Column2MapKey = "B";
 

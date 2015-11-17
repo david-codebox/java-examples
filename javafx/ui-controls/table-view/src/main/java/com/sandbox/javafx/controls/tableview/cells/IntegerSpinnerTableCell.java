@@ -101,8 +101,9 @@ public class IntegerSpinnerTableCell<S,T extends Number> extends TableCell<S,T> 
                     @Override
                     public void handle(MouseEvent event) {
                         if (!ov.getValue().equals(getItem())) {
-                            commitEdit(getItem());
+//                            commitEdit(getItem());
                         }
+                        commitEdit(spinner.getValue());
                     }
                 });
 //                logger.debug("IntegerSpinnerTableCell.updateItem: spinner value [{}]", spinner.getValue());

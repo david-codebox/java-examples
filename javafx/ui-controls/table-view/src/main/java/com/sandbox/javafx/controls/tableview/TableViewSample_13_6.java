@@ -1,6 +1,6 @@
-package com.sandbox.javafx.controls.tableview.beanproperty;
+package com.sandbox.javafx.controls.tableview;
 
-import com.sandbox.javafx.controls.tableview.beanproperty.domain.Person;
+import com.sandbox.javafx.controls.tableview.model.Person;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -21,7 +21,7 @@ import javafx.stage.Stage;
  * Date: 2015/9/9
  * Time: 21:42
  */
-public class TableViewSample extends Application {
+public class TableViewSample_13_6 extends Application {
     private TableView<Person> table = new TableView<Person>();
     private final ObservableList<Person> data =
             FXCollections.observableArrayList(
