@@ -44,7 +44,9 @@ public class ConfigToMapTest {
     }
 
     private void explodeMap(Map<String, Object> map, String parent) {
-        map.forEach( (key, value) -> {
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
             StringBuilder path = new StringBuilder();
             if (!Strings.isNullOrEmpty(parent)) {
                 path.append(parent).append('.');
@@ -53,21 +55,20 @@ public class ConfigToMapTest {
             if (value instanceof Map) {
                 Map value1 = (Map) value;
                 path.append(key);
-//                logger.debug("ConfigToMapTest.testFlatten: updated path before recursive: [{}]", path);
                 explodeMap(value1, path.toString());
             } else if (value instanceof List) {
                 List list = (List) value;
                 path.append(key);
+                if (!list.isEmpty() && list.get(0) instanceof String) {
+                    //String list. skipping...
+                    continue;
+                }
                 for (int i = 0; i < list.size(); i++) {
                     Object item = list.get(i);
                     logger.debug("ConfigToMapTest.explodeMap: list item: [{}]", item.getClass().getName());
                     if (item instanceof Map) {
                         Map listItem = (Map) item;
                         explodeMap(listItem, String.format("%s[%d]", path,i));
-                    }else if (item instanceof String) {
-
-
-                        logger.debug("ConfigToMapTest.testFlatten: list item path: [{}]", String.format("%s[%d]", path,i));
                     }
                 }
 
@@ -78,6 +79,7 @@ public class ConfigToMapTest {
             }
 
             logger.info("ConfigToMapTest.explodeMap: ==============================" );
-        });
+        }
+
     }
 }

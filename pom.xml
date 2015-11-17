@@ -19,6 +19,7 @@
         <module>icu4j</module>
         <module>annotation</module>
         <module>mvn</module>
+        <module>integration</module>
     </modules>
     <packaging>pom</packaging>
 
