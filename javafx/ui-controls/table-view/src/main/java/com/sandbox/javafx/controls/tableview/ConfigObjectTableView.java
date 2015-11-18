@@ -2,10 +2,13 @@ package com.sandbox.javafx.controls.tableview;
 
 import com.typesafe.config.*;
 import javafx.application.Application;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.Scene;
@@ -23,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 
 
 /**
@@ -65,6 +69,14 @@ public class ConfigObjectTableView extends Application {
 
 
         final Button addButton = new Button("Add");
+        final Button submitBtn = new Button("Submit");
+        submitBtn.setOnAction(e ->{
+            table.getItems().forEach(map -> {
+                map.forEach((k, v) -> {
+                    logger.debug("ConfigObjectTableView.start: Key=[{}], Value=[{}]", k, v );
+                });
+            });
+        });
 /*        addButton.setOnAction((ActionEvent e) -> {
             data.add(new Person(
                     addFirstName.getText(),
@@ -76,7 +88,7 @@ public class ConfigObjectTableView extends Application {
         });*/
 
 //        hb.getChildren().addAll(addFirstName, addLastName, addEmail, addButton);
-        hb.getChildren().addAll(addButton);
+        hb.getChildren().addAll(addButton,submitBtn);
         hb.setSpacing(3);
 
         final VBox vbox = new VBox();
@@ -113,7 +125,62 @@ public class ConfigObjectTableView extends Application {
                     }));
                     break;
                 case BOOLEAN:
-                    column.setCellFactory(CheckBoxTableCell.forTableColumn(param -> new SimpleBooleanProperty((Boolean) column.getCellData(param).unwrapped())));
+                    CheckBoxTableCell<Map, ConfigValue> checkBoxTableCell = new CheckBoxTableCell<>((param -> {
+                        BooleanProperty property=new SimpleBooleanProperty((Boolean) column.getCellData(param).unwrapped());
+                        property.addListener(new ChangeListener<Boolean>() {
+                            @Override
+                            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                                logger.debug("ConfigObjectTableView.changed: checkbox value: [{}]", newValue );
+                            }
+                        });
+                        return property;
+                    }));
+
+                    checkBoxTableCell.selectedProperty().addListener(new ChangeListener<Boolean>() {
+                        @Override
+                        public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                            checkBoxTableCell.commitEdit(ConfigValueFactory.fromAnyRef(newValue));
+                        }
+                    });
+
+                    column.setCellFactory(new Callback<TableColumn<Map, ConfigValue>, TableCell<Map, ConfigValue>>() {
+                        @Override
+                        public TableCell<Map, ConfigValue> call(TableColumn<Map, ConfigValue> param) {
+                            CheckBoxTableCell<Map, ConfigValue> tableCell = new CheckBoxTableCell<>();
+                            tableCell.setSelectedStateCallback(new Callback<Integer, ObservableValue<Boolean>>() {
+                                @Override
+                                public ObservableValue<Boolean> call(Integer p) {
+                                    BooleanProperty property = new SimpleBooleanProperty((Boolean) column.getCellData(p).unwrapped());
+                                    tableCell.selectedProperty().addListener(new ChangeListener<Boolean>() {
+                                        @Override
+                                        public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                                            logger.debug("ConfigObjectTableView.changed: selectedProperty [{}]", newValue );
+                                        }
+                                    });
+                                    property.addListener(new ChangeListener<Boolean>() {
+                                        @Override
+                                        public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                                            logger.debug("ConfigObjectTableView.changed: checkbox value: [{}]", newValue);
+                                            tableCell.setItem(ConfigValueFactory.fromAnyRef(newValue));
+                                            tableCell.commitEdit(ConfigValueFactory.fromAnyRef(newValue));
+                                        }
+                                    });
+                                    return property;
+                                }
+                            });
+                            return tableCell;
+                        }
+                    });
+/*                    column.setCellFactory(CheckBoxTableCell.forTableColumn((param -> {
+                        BooleanProperty property=new SimpleBooleanProperty((Boolean) column.getCellData(param).unwrapped());
+                        property.addListener(new ChangeListener<Boolean>() {
+                            @Override
+                            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                                logger.debug("ConfigObjectTableView.changed: checkbox value: [{}]", newValue );
+                            }
+                        });
+                        return property;
+                    })));*/
                     break;
                 default:
                     column.setCellFactory(TextFieldTableCell.forTableColumn(new StringConverter<ConfigValue>() {
@@ -129,13 +196,13 @@ public class ConfigObjectTableView extends Application {
                     }));
                     break;
             }
-            table.getColumns().add(column);
-            table.getColumns().sort(new Comparator<TableColumn<Map, ?>>() {
-                @Override
-                public int compare(TableColumn<Map, ?> o1, TableColumn<Map, ?> o2) {
-                    return o1.getText().compareTo(o2.getText());
-                }
+
+            column.setOnEditCommit(t -> {
+                t.getTableView().getItems().get(
+                        t.getTablePosition().getRow()).put(entry.getKey(), t.getNewValue());
             });
+            table.getColumns().add(column);
+            table.getColumns().sort((o1, o2) -> o1.getText().compareTo(o2.getText()));
         });
     }
 
