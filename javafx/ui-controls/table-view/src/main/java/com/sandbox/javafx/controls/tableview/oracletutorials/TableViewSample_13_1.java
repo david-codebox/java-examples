@@ -1,13 +1,12 @@
-package com.sandbox.javafx.controls.tableview;
+package com.sandbox.javafx.controls.tableview.oracletutorials;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.layout.VBox;
+import javafx.scene.control.*;
+import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
@@ -19,7 +18,7 @@ import javafx.stage.Stage;
  * Time: 13:39 <br>
  * </div>
  */
-public class TableViewSample_13_2 extends Application {
+public class TableViewSample_13_1 extends Application {
 
     private final TableView table = new TableView();
     public static void main(String[] args) {
@@ -41,9 +40,6 @@ public class TableViewSample_13_2 extends Application {
         TableColumn firstNameCol = new TableColumn("First Name");
         TableColumn lastNameCol = new TableColumn("Last Name");
         TableColumn emailCol = new TableColumn("Email");
-        TableColumn firstEmailCol = new TableColumn("Primary");
-        TableColumn secondEmailCol = new TableColumn("Secondary");
-        emailCol.getColumns().addAll(firstEmailCol, secondEmailCol);
 
         table.getColumns().addAll(firstNameCol, lastNameCol, emailCol);
 

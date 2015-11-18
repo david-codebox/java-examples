@@ -1,4 +1,4 @@
-package com.sandbox.javafx.controls.tableview;
+package com.sandbox.javafx.controls.tableview.oracletutorials;
 
 import javafx.application.Application;
 import javafx.application.Application;
