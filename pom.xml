@@ -16,7 +16,6 @@
         <module>design-patterns</module>
         <module>javafx</module>
         <module>java8</module>
-        <module>icu4j</module>
         <module>annotation</module>
         <module>mvn</module>
         <module>integration</module>

@@ -1,5 +1,8 @@
 package com.sandbox.javafx.controls.tableview;
 
+import com.sandbox.javafx.controls.tableview.cells.ConfigValueCellFactory;
+import com.sandbox.javafx.controls.tableview.cells.ConfigValueStringConverter;
+import com.sandbox.javafx.controls.tableview.cells.ConfigValueValueFactory;
 import com.typesafe.config.*;
 import javafx.application.Application;
 import javafx.beans.property.BooleanProperty;
@@ -41,7 +44,7 @@ public class ConfigObjectTableView extends Application {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     public static final String Column1MapKey = "KEY";
     public static final String Column2MapKey = "VALUE";
-    private final TableView<Map> table =new TableView<>();
+    private final TableView<Map<String, ConfigValue>> table =new TableView<>();
     private final ObservableList<? extends ConfigObject> data;
     final HBox hb = new HBox();
 
@@ -72,9 +75,7 @@ public class ConfigObjectTableView extends Application {
         final Button submitBtn = new Button("Submit");
         submitBtn.setOnAction(e ->{
             table.getItems().forEach(map -> {
-                map.forEach((k, v) -> {
-                    logger.debug("ConfigObjectTableView.start: Key=[{}], Value=[{}]", k, v );
-                });
+                logger.debug("ConfigObjectTableView.start: row: [{}]", map );
             });
         });
 /*        addButton.setOnAction((ActionEvent e) -> {
@@ -106,97 +107,9 @@ public class ConfigObjectTableView extends Application {
         ConfigObject configObject = data.stream().findFirst().get();
 
         configObject.entrySet().forEach(entry -> {
-            TableColumn<Map, ConfigValue> column = new TableColumn<>(entry.getKey());
-            column.setCellValueFactory(new MapValueFactory<>(entry.getKey()));
-
-//            column.setCellFactory(buildCellFactory(entry.getValue()));
-            switch (entry.getValue().valueType()) {
-                case STRING:
-                    column.setCellFactory(TextFieldTableCell.forTableColumn(new StringConverter<ConfigValue>() {
-                        @Override
-                        public String toString(ConfigValue object) {
-                            return object.unwrapped().toString();
-                        }
-
-                        @Override
-                        public ConfigValue fromString(String string) {
-                            return ConfigValueFactory.fromAnyRef(string);
-                        }
-                    }));
-                    break;
-                case BOOLEAN:
-                    CheckBoxTableCell<Map, ConfigValue> checkBoxTableCell = new CheckBoxTableCell<>((param -> {
-                        BooleanProperty property=new SimpleBooleanProperty((Boolean) column.getCellData(param).unwrapped());
-                        property.addListener(new ChangeListener<Boolean>() {
-                            @Override
-                            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                                logger.debug("ConfigObjectTableView.changed: checkbox value: [{}]", newValue );
-                            }
-                        });
-                        return property;
-                    }));
-
-                    checkBoxTableCell.selectedProperty().addListener(new ChangeListener<Boolean>() {
-                        @Override
-                        public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                            checkBoxTableCell.commitEdit(ConfigValueFactory.fromAnyRef(newValue));
-                        }
-                    });
-
-                    column.setCellFactory(new Callback<TableColumn<Map, ConfigValue>, TableCell<Map, ConfigValue>>() {
-                        @Override
-                        public TableCell<Map, ConfigValue> call(TableColumn<Map, ConfigValue> param) {
-                            CheckBoxTableCell<Map, ConfigValue> tableCell = new CheckBoxTableCell<>();
-                            tableCell.setSelectedStateCallback(new Callback<Integer, ObservableValue<Boolean>>() {
-                                @Override
-                                public ObservableValue<Boolean> call(Integer p) {
-                                    BooleanProperty property = new SimpleBooleanProperty((Boolean) column.getCellData(p).unwrapped());
-                                    tableCell.selectedProperty().addListener(new ChangeListener<Boolean>() {
-                                        @Override
-                                        public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                                            logger.debug("ConfigObjectTableView.changed: selectedProperty [{}]", newValue );
-                                        }
-                                    });
-                                    property.addListener(new ChangeListener<Boolean>() {
-                                        @Override
-                                        public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                                            logger.debug("ConfigObjectTableView.changed: checkbox value: [{}]", newValue);
-                                            tableCell.setItem(ConfigValueFactory.fromAnyRef(newValue));
-                                            tableCell.commitEdit(ConfigValueFactory.fromAnyRef(newValue));
-                                        }
-                                    });
-                                    return property;
-                                }
-                            });
-                            return tableCell;
-                        }
-                    });
-/*                    column.setCellFactory(CheckBoxTableCell.forTableColumn((param -> {
-                        BooleanProperty property=new SimpleBooleanProperty((Boolean) column.getCellData(param).unwrapped());
-                        property.addListener(new ChangeListener<Boolean>() {
-                            @Override
-                            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                                logger.debug("ConfigObjectTableView.changed: checkbox value: [{}]", newValue );
-                            }
-                        });
-                        return property;
-                    })));*/
-                    break;
-                default:
-                    column.setCellFactory(TextFieldTableCell.forTableColumn(new StringConverter<ConfigValue>() {
-                        @Override
-                        public String toString(ConfigValue object) {
-                            return object.unwrapped().toString();
-                        }
-
-                        @Override
-                        public ConfigValue fromString(String string) {
-                            return ConfigValueFactory.fromAnyRef(string);
-                        }
-                    }));
-                    break;
-            }
-
+            TableColumn<Map<String, ConfigValue>, ConfigValue> column = new TableColumn<>(entry.getKey());
+            column.setCellValueFactory(new ConfigValueValueFactory<>(entry.getKey()));
+            setUpCellFactory(column, entry);
             column.setOnEditCommit(t -> {
                 t.getTableView().getItems().get(
                         t.getTablePosition().getRow()).put(entry.getKey(), t.getNewValue());
@@ -206,31 +119,24 @@ public class ConfigObjectTableView extends Application {
         });
     }
 
-    private Callback<TableColumn<Map, String>, TableCell<Map, String>> buildCellFactory(ConfigValue configValue) {
-        Callback<TableColumn<Map, String>, TableCell<Map, String>> valueFactory=(TableColumn<Map, String> p) ->
-                new TextFieldTableCell(new StringConverter() {
-                    @Override
-                    public String toString(Object t) {
-                        return t.toString();
-                    }
-                    @Override
-                    public Object fromString(String string) {
-                        return string;
-                    }
-                });
-        switch (configValue.valueType()) {
+    private void setUpCellFactory(TableColumn<Map<String, ConfigValue>, ConfigValue> column, Map.Entry<String, ConfigValue> entry) {
+
+        switch (entry.getValue().valueType()) {
             case STRING:
-                return valueFactory;
+                column.setCellFactory(TextFieldTableCell.forTableColumn(new ConfigValueStringConverter()));
+                break;
             case BOOLEAN:
-                valueFactory = (TableColumn<Map, String> p) -> new CheckBoxTableCell<>();
+                column.setCellFactory(new ConfigValueCellFactory<>(entry));
+                break;
+            default:
+                column.setCellFactory(param -> new TableCell<>());
                 break;
         }
 
-        return valueFactory;
     }
 
-    private ObservableList<Map> generateDataInMap() {
-        ObservableList<Map> allData = FXCollections.observableArrayList();
+    private ObservableList<Map<String, ConfigValue>> generateDataInMap() {
+        ObservableList<Map<String, ConfigValue>> allData = FXCollections.observableArrayList();
         data.forEach( item -> {
             Map<String, ConfigValue> dataRow = new HashMap<>();
             item.entrySet().forEach(entry ->{
