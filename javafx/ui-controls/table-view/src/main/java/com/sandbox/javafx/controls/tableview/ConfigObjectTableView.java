@@ -5,31 +5,25 @@ import com.sandbox.javafx.controls.tableview.cells.ConfigValueStringConverter;
 import com.sandbox.javafx.controls.tableview.cells.ConfigValueValueFactory;
 import com.typesafe.config.*;
 import javafx.application.Application;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.EventHandler;
+import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.CheckBoxTableCell;
-import javafx.scene.control.cell.MapValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
-import javafx.util.Callback;
-import javafx.util.StringConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
-import java.util.function.BiConsumer;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -45,11 +39,11 @@ public class ConfigObjectTableView extends Application {
     private final TableView<Map<String, ConfigValue>> table =new TableView<>();
     private final ObservableList<? extends ConfigObject> data;
     final HBox hb = new HBox();
-
+    final HBox form = new HBox();
     public ConfigObjectTableView() {
         Config config = ConfigFactory.parseResources("resource.conf");
-        String path = "svn.repositories";
-//        String path = "ftp.local-working-folders";
+//        String path = "svn.repositories";
+        String path = "ftp.local-working-folders";
         data = FXCollections.observableList(config.getObjectList(path));
     }
 
@@ -67,6 +61,8 @@ public class ConfigObjectTableView extends Application {
         table.setItems(generateDataInMap());
         buildColumns(data);
 
+        setUpForm();
+
 
         final Button addButton = new Button("Add");
         final Button submitBtn = new Button("Submit");
@@ -75,15 +71,10 @@ public class ConfigObjectTableView extends Application {
                 logger.debug("ConfigObjectTableView.start: row: [{}]", map );
             });
         });
-/*        addButton.setOnAction((ActionEvent e) -> {
-            data.add(new Person(
-                    addFirstName.getText(),
-                    addLastName.getText(),
-                    addEmail.getText()));
-            addFirstName.clear();
-            addLastName.clear();
-            addEmail.clear();
-        });*/
+        addButton.setOnAction((ActionEvent e) -> {
+            submitForm();
+            resetForm();
+        });
 
 //        hb.getChildren().addAll(addFirstName, addLastName, addEmail, addButton);
         hb.getChildren().addAll(addButton,submitBtn);
@@ -92,12 +83,104 @@ public class ConfigObjectTableView extends Application {
         final VBox vbox = new VBox();
         vbox.setSpacing(5);
         vbox.setPadding(new Insets(10, 0, 0, 10));
-        vbox.getChildren().addAll(label, table, hb);
+        vbox.getChildren().addAll(label, table, hb,form);
 
         ((Group) scene.getRoot()).getChildren().addAll(vbox);
 
         stage.setScene(scene);
         stage.show();
+    }
+
+    private void setUpForm() {
+        if (!table.getItems().isEmpty()) {
+            table.getItems().stream().findFirst().get().entrySet().forEach( entry -> {
+                switch (entry.getValue().valueType()) {
+                    case NUMBER:
+                        TextField numberField=new TextField();
+                        numberField.setId(entry.getKey());
+                        form.getChildren().add(numberField);
+                        break;
+                    case BOOLEAN:
+                        CheckBox checkBox = new CheckBox();
+                        checkBox.setId(entry.getKey());
+                        form.getChildren().add(checkBox);
+                        break;
+                    case STRING:
+                        TextField textField=new TextField();
+                        textField.setId(entry.getKey());
+                        form.getChildren().add(textField);
+                        break;
+                    default:
+                        TextField defaultField=new TextField();
+                        defaultField.setId(entry.getKey());
+                        form.getChildren().add(defaultField);
+                        break;
+                }
+            });
+        }
+    }
+
+    private void submitForm() {
+        if (!form.getChildren().isEmpty()) {
+            Map<String, ConfigValue> row = new HashMap<>();
+            for (Node node : form.getChildren()) {
+                if (node instanceof TextField) {
+                    TextField textField = (TextField) node;
+                    row.put(textField.getId(), ConfigValueFactory.fromAnyRef(textField.getText()));
+                } else if (node instanceof CheckBox) {
+                    CheckBox checkBox = (CheckBox) node;
+                    row.put(checkBox.getId(), ConfigValueFactory.fromAnyRef(checkBox.isSelected()));
+                }else if (node instanceof Spinner) {
+                    Spinner spinner = (Spinner) node;
+                    spinner.getEditor().clear();
+                    row.put(spinner.getId(), ConfigValueFactory.fromAnyRef(spinner.getValue()));
+                } else {
+                    logger.error("ConfigObjectTableView.resetForm: Unsupported control [{}]",node.getClass().getName() );
+                }
+
+            }
+            table.getItems().add(row);
+        }
+    }
+    private void resetForm() {
+        if (!form.getChildren().isEmpty()) {
+            for (Node node : form.getChildren()) {
+                if (node instanceof TextField) {
+                    TextField textField = (TextField) node;
+                    textField.clear();
+                } else if (node instanceof CheckBox) {
+                    CheckBox checkBox = (CheckBox) node;
+                    checkBox.setSelected(false);
+                }else if (node instanceof Spinner) {
+                    Spinner spinner = (Spinner) node;
+                    spinner.getEditor().clear();
+                } else {
+                    logger.error("ConfigObjectTableView.resetForm: Unsupported control [{}]",node.getClass().getName() );
+                }
+
+            }
+        }
+    }
+
+    private Map<String, ConfigValue> createNewRow(ConfigObject template) {
+        Map<String, ConfigValue> row = new HashMap<>();
+        template.entrySet().forEach(entry -> {
+            switch (entry.getValue().valueType()) {
+                case NUMBER:
+                    row.put(entry.getKey(), ConfigValueFactory.fromAnyRef(0));
+                    break;
+                case BOOLEAN:
+                    row.put(entry.getKey(), ConfigValueFactory.fromAnyRef(false));
+                    break;
+                case STRING:
+                    row.put(entry.getKey(), ConfigValueFactory.fromAnyRef(""));
+                    break;
+                default:
+                    row.put(entry.getKey(), ConfigValueFactory.fromAnyRef(""));
+                    break;
+            }
+        });
+        return row;
     }
 
     private void buildColumns(List<? extends ConfigObject> data) {
@@ -112,7 +195,7 @@ public class ConfigObjectTableView extends Application {
                         t.getTablePosition().getRow()).put(entry.getKey(), t.getNewValue());
             });
             table.getColumns().add(column);
-            table.getColumns().sort((o1, o2) -> o1.getText().compareTo(o2.getText()));
+//            table.getColumns().sort((o1, o2) -> o1.getText().compareTo(o2.getText()));
         });
     }
 
@@ -120,7 +203,7 @@ public class ConfigObjectTableView extends Application {
 
         switch (entry.getValue().valueType()) {
             case STRING:
-                column.setCellFactory(TextFieldTableCell.forTableColumn(new ConfigValueStringConverter()));
+                column.setCellFactory(TextFieldTableCell.forTableColumn(new ConfigValueStringConverter<>()));
                 break;
             case BOOLEAN:
                 column.setCellFactory(new ConfigValueCellFactory<>(entry));
