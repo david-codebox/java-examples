@@ -72,8 +72,10 @@ public class ConfigObjectTableView extends Application {
             });
         });
         addButton.setOnAction((ActionEvent e) -> {
-            submitForm();
-            resetForm();
+            if (!form.getChildren().isEmpty()) {
+                submitForm();
+                resetForm();
+            }
         });
 
 //        hb.getChildren().addAll(addFirstName, addLastName, addEmail, addButton);
@@ -121,27 +123,43 @@ public class ConfigObjectTableView extends Application {
     }
 
     private void submitForm() {
-        if (!form.getChildren().isEmpty()) {
-            Map<String, ConfigValue> row = new HashMap<>();
-            for (Node node : form.getChildren()) {
-                if (node instanceof TextField) {
-                    TextField textField = (TextField) node;
-                    row.put(textField.getId(), ConfigValueFactory.fromAnyRef(textField.getText()));
-                } else if (node instanceof CheckBox) {
-                    CheckBox checkBox = (CheckBox) node;
-                    row.put(checkBox.getId(), ConfigValueFactory.fromAnyRef(checkBox.isSelected()));
-                }else if (node instanceof Spinner) {
-                    Spinner spinner = (Spinner) node;
-                    spinner.getEditor().clear();
-                    row.put(spinner.getId(), ConfigValueFactory.fromAnyRef(spinner.getValue()));
-                } else {
-                    logger.error("ConfigObjectTableView.resetForm: Unsupported control [{}]",node.getClass().getName() );
-                }
-
-            }
-            table.getItems().add(row);
+        if (!validateForm()) {
+            logger.error("ConfigObjectTableView.submitForm: Missing value for text fields" );
+            return;
         }
+        Map<String, ConfigValue> row = new HashMap<>();
+        for (Node node : form.getChildren()) {
+            if (node instanceof TextField) {
+                TextField textField = (TextField) node;
+                row.put(textField.getId(), ConfigValueFactory.fromAnyRef(textField.getText()));
+            } else if (node instanceof CheckBox) {
+                CheckBox checkBox = (CheckBox) node;
+                row.put(checkBox.getId(), ConfigValueFactory.fromAnyRef(checkBox.isSelected()));
+            } else if (node instanceof Spinner) {
+                Spinner spinner = (Spinner) node;
+                spinner.getEditor().clear();
+                row.put(spinner.getId(), ConfigValueFactory.fromAnyRef(spinner.getValue()));
+            } else {
+                logger.error("ConfigObjectTableView.resetForm: Unsupported control [{}]", node.getClass().getName());
+            }
+
+        }
+        table.getItems().add(row);
     }
+
+    private boolean validateForm() {
+        for (Node node : form.getChildren()) {
+            if (node instanceof TextField) {
+                TextField textField = (TextField) node;
+                if(textField.getText().trim().isEmpty()) return false;
+            } else if (node instanceof Spinner) {
+                Spinner spinner = (Spinner) node;
+                if(spinner.getEditor().getText().trim().isEmpty()) return false;
+            }
+        }
+        return true;
+    }
+
     private void resetForm() {
         if (!form.getChildren().isEmpty()) {
             for (Node node : form.getChildren()) {
@@ -160,27 +178,6 @@ public class ConfigObjectTableView extends Application {
 
             }
         }
-    }
-
-    private Map<String, ConfigValue> createNewRow(ConfigObject template) {
-        Map<String, ConfigValue> row = new HashMap<>();
-        template.entrySet().forEach(entry -> {
-            switch (entry.getValue().valueType()) {
-                case NUMBER:
-                    row.put(entry.getKey(), ConfigValueFactory.fromAnyRef(0));
-                    break;
-                case BOOLEAN:
-                    row.put(entry.getKey(), ConfigValueFactory.fromAnyRef(false));
-                    break;
-                case STRING:
-                    row.put(entry.getKey(), ConfigValueFactory.fromAnyRef(""));
-                    break;
-                default:
-                    row.put(entry.getKey(), ConfigValueFactory.fromAnyRef(""));
-                    break;
-            }
-        });
-        return row;
     }
 
     private void buildColumns(List<? extends ConfigObject> data) {
