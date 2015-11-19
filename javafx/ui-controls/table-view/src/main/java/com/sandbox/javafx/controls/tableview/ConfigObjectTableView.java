@@ -42,16 +42,14 @@ import java.util.function.BiConsumer;
  */
 public class ConfigObjectTableView extends Application {
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    public static final String Column1MapKey = "KEY";
-    public static final String Column2MapKey = "VALUE";
     private final TableView<Map<String, ConfigValue>> table =new TableView<>();
     private final ObservableList<? extends ConfigObject> data;
     final HBox hb = new HBox();
 
     public ConfigObjectTableView() {
         Config config = ConfigFactory.parseResources("resource.conf");
-//        String path = "svn.repositories";
-        String path = "ftp.local-working-folders";
+        String path = "svn.repositories";
+//        String path = "ftp.local-working-folders";
         data = FXCollections.observableList(config.getObjectList(path));
     }
 
@@ -66,7 +64,6 @@ public class ConfigObjectTableView extends Application {
         label.setFont(new Font("Arial", 20));
 
         table.setEditable(true);
-        table.autosize();
         table.setItems(generateDataInMap());
         buildColumns(data);
 
