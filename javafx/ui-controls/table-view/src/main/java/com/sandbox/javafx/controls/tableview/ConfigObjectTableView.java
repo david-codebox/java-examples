@@ -25,7 +25,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
 /**
  * <div>
  * Created with IntelliJ IDEA.
@@ -39,7 +38,7 @@ public class ConfigObjectTableView extends Application {
     private final TableView<Map<String, ConfigValue>> table =new TableView<>();
     private final ObservableList<? extends ConfigObject> data;
     final HBox hb = new HBox();
-    final HBox form = new HBox();
+    final HBox form = new HBox(5);
     public ConfigObjectTableView() {
         Config config = ConfigFactory.parseResources("resource.conf");
 //        String path = "svn.repositories";
@@ -66,6 +65,7 @@ public class ConfigObjectTableView extends Application {
 
         final Button addButton = new Button("Add");
         final Button submitBtn = new Button("Submit");
+        final Button delBtn = new Button("Remove");
         submitBtn.setOnAction(e ->{
             table.getItems().forEach(map -> {
                 logger.debug("ConfigObjectTableView.start: row: [{}]", map );
@@ -77,15 +77,18 @@ public class ConfigObjectTableView extends Application {
                 resetForm();
             }
         });
+        delBtn.setOnAction(e -> {
+            table.getItems().remove(table.getSelectionModel().getSelectedItem());
+        });
 
 //        hb.getChildren().addAll(addFirstName, addLastName, addEmail, addButton);
-        hb.getChildren().addAll(addButton,submitBtn);
-        hb.setSpacing(3);
+        hb.getChildren().addAll(addButton,submitBtn,delBtn);
+        hb.setSpacing(5);
 
         final VBox vbox = new VBox();
         vbox.setSpacing(5);
         vbox.setPadding(new Insets(10, 0, 0, 10));
-        vbox.getChildren().addAll(label, table, hb,form);
+        vbox.getChildren().addAll(label, table, form, hb);
 
         ((Group) scene.getRoot()).getChildren().addAll(vbox);
 

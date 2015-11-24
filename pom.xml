@@ -20,6 +20,7 @@
         <module>mvn</module>
         <module>integration</module>
         <module>slf4j</module>
+        <module>os</module>
     </modules>
     <packaging>pom</packaging>
 
