@@ -30,6 +30,8 @@ public class WindowsCMDRunner {
             logger.info(line );
         }
         process.waitFor();
+        int returnCode = process.exitValue();
+        logger.info("WindowsCMDRunner.run: returnCode [{}]",returnCode );
     }
 
     public void run(String... command) throws IOException, InterruptedException {

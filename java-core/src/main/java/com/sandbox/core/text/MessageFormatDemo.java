@@ -16,6 +16,7 @@ public class MessageFormatDemo {
         String userName = System.getProperty("user.name");
         String ts = LocalDateTime.now().toString();
         System.out.println(MessageFormat.format("Hello {0}, the time now is {1}", userName, ts));
+        System.out.println(MessageFormat.format("Hello \"{0}\", the time now is '{1}'", userName, ts));
         System.out.println(MessageFormat.format("Hello ''{0}'', the time now is {1}", userName, ts));
         System.out.println(MessageFormat.format("Hello '{0}', the time now is {1}", userName, ts));
         System.out.println(MessageFormat.format("Hello '''{0}''', the time now is {1}", userName, ts));

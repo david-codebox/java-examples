@@ -21,6 +21,7 @@
         <module>integration</module>
         <module>slf4j</module>
         <module>os</module>
+        <module>react</module>
     </modules>
     <packaging>pom</packaging>
 

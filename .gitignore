@@ -1,3 +1,6 @@
 # Created by .gitignore support plugin (hsz.mobi)
 
 .idea
+
+react/tutorial/public/bower_components
+node_modules

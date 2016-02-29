@@ -15,6 +15,11 @@
         <module>table-view</module>
         <module>dialogs</module>
         <module>progress-indicator</module>
+        <module>text-input</module>
+        <module>list-view</module>
+        <module>buttons</module>
+        <module>ui-controls-core</module>
+        <module>controlsfx</module>
     </modules>
 
 
