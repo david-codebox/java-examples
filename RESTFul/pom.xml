@@ -18,6 +18,7 @@
         <module>rest-client-jersey</module>
         <module>jersey-quick-start</module>
         <module>http-client</module>
+        <module>spring</module>
     </modules>
 
     <dependencyManagement>
